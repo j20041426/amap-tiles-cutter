@@ -86,6 +86,7 @@ onMounted(() => {
       }
     });
     map.addLayer(layer);
+    layer.hide();
   })
 })
 
