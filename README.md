@@ -23,20 +23,20 @@ AMapLoader.load({
   "key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",  // 申请好的Web端开发者Key，首次调用 load 时必填
   "version": "2.0",                           // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
   "plugins": ['AMap.MoveAnimation'],          // 需要使用的的插件列表，如比例尺'AMap.Scale'等
-}).then((_AMap: any) => {
+}).then((AMap: any) => {
   const layer = new AMap.TileLayer.Flexible({
     cacheSize: 120,
     zooms: [15, 17],
     createTile: (x: number, y: number, z: number, success: Function, fail: Function) => {
-    const img = new Image();
-     img.src = `/static/map/${z}/tile_${x}_${y}.png`;
-     img.crossOrigin = 'Anonymous';
-     img.onload = () => {
-       success(img);
-     }
-     img.onerror = () => {
-       fail();
-     }
+      const img = new Image();
+      img.src = `/static/map/${z}/tile_${x}_${y}.png`;
+      img.crossOrigin = 'Anonymous';
+      img.onload = () => {
+        success(img);
+      }
+      img.onerror = () => {
+        fail();
+      }
     }
   })
   map = new AMap.Map('container', {
