@@ -100,7 +100,7 @@ const search = () => {
 }
 
 // 显示网格
-const showMesh = ref(true);
+const showMesh = ref(false);
 watch(showMesh, () => {
   showMesh.value ? layer.show() : layer.hide();
 })
