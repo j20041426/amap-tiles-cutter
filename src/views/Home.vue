@@ -34,8 +34,10 @@
     <div class="search flex">
       <el-input size="small" placeholder="输入要查询的地址" v-model="addr"></el-input>
       <el-button size="small" type="primary" style="margin-left:10px" @click="search">查询</el-button>
-      <el-checkbox size="small" v-model="showMesh" border style="margin-left:10px">显示网格</el-checkbox>
+      <el-checkbox size="small" v-model="showMesh" border style="margin-left:30px">显示网格</el-checkbox>
+      <el-checkbox size="small" v-model="showSatellite" border>显示卫星地图</el-checkbox>
     </div>
+    <div class="level">当前缩放级别：{{ currLevel }}</div>
   </div>
 </template>
 
@@ -46,7 +48,8 @@ import Common from '../utils/Common'
 import JSZip from 'jszip'
 const saveAs = require('jszip/vendor/FileSaver')
 
-let map: any, placeSearch: any, AMap: any, imageLayer: any, layer: any;
+let map: any, placeSearch: any, AMap: any, imageLayer: any, meshLayer: any, satelliteLayer: any;
+const currLevel = ref(14);
 // 初始化地图
 onMounted(() => {
   AMapLoader.load({
@@ -57,8 +60,13 @@ onMounted(() => {
     AMap = _AMap;
     map = new AMap.Map('container', {
       center: [104.065774, 30.657497],
-      zoom: 14,
+      zoom: currLevel.value,
     });
+
+    // 监听当前缩放级别
+    map.on('zoomchange', ({target}: any) => {
+      currLevel.value = target.getZoom();
+    })
 
     // 地址查询器
     placeSearch = new AMap.PlaceSearch();
@@ -67,7 +75,7 @@ onMounted(() => {
     map.addControl(new AMap.ToolBar());
 
     // 添加瓦片网格
-    layer = new AMap.TileLayer.Flexible({
+    meshLayer = new AMap.TileLayer.Flexible({
       cacheSize: 30,
       zIndex: 200,
       createTile: (x: number, y: number, z: number, success: Function, fail: Function) => {
@@ -85,8 +93,13 @@ onMounted(() => {
         success(c);
       }
     });
-    map.addLayer(layer);
-    layer.hide();
+    map.addLayer(meshLayer);
+    meshLayer.hide();
+
+    // 添加卫星地图
+    satelliteLayer = new AMap.TileLayer.Satellite();
+    map.addLayer(satelliteLayer);
+    satelliteLayer.hide();
   })
 })
 
@@ -103,7 +116,13 @@ const search = () => {
 // 显示网格
 const showMesh = ref(false);
 watch(showMesh, () => {
-  showMesh.value ? layer.show() : layer.hide();
+  showMesh.value ? meshLayer.show() : meshLayer.hide();
+})
+
+// 显示卫星地图
+const showSatellite = ref(false);
+watch(showSatellite, () => {
+  showSatellite.value ? satelliteLayer.show() : satelliteLayer.hide();
 })
 
 // 地图图片
@@ -273,6 +292,9 @@ const stopSlice = () => {
   }
   .search {
     position: absolute; top: 270px; left: 10px;
+  }
+  .level {
+    position: absolute; top: 270px; right: 10px;
   }
 }
 </style>
