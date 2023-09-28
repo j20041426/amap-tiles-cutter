@@ -151,19 +151,31 @@ watch(image, () => {
 
     // 创建西南点 东北点
     const southWest = new AMap.Marker({
+      label: {
+        content: image.bounds.southWest,
+        offset: new AMap.Pixel(0, -36),
+        direction: 'center'
+      },
       position: image.bounds.southWest,
       draggable: true
     })
     useMouse(southWest, (e: any) => {
       image.bounds.southWest = e.target.getPosition();
+      southWest.setLabel({content: image.bounds.southWest});
     }, true);
     map.add(southWest);
     const northEast = new AMap.Marker({
+      label: {
+        content: image.bounds.northEast,
+        offset: new AMap.Pixel(0, -36),
+        direction: 'center'
+      },
       position: image.bounds.northEast,
       draggable: true
     })
     useMouse(northEast, (e: any) => {
       image.bounds.northEast = e.target.getPosition();
+      northEast.setLabel({content: image.bounds.northEast});
     }, true);
     map.add(northEast);
   }
