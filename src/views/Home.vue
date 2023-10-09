@@ -2,7 +2,7 @@
   <div class="wrapper flex column">
     <div class="toolbar flex ai-fs">
       <div class="step flex-1">
-        <div class="title">1. 图片处理</div>
+        <div class="title">1. 图片设置</div>
         <el-form label-position="top">
           <el-form-item label=" ">
             <el-button type="primary" @click="upload">上传图片</el-button>
@@ -14,7 +14,7 @@
         </el-form>
       </div>
       <div class="step flex-1">
-        <div class="title">2. 切片处理</div>
+        <div class="title">2. 切片设置</div>
         <el-form label-position="top">
           <el-form-item label="显示层级">
             <div class="flex" style="max-width:300px;width:100%">
@@ -22,12 +22,20 @@
               <span style="margin-left:15px">{{levels}}</span>
             </div>
           </el-form-item>
-          <el-form-item>
-            <el-button type="danger" @click="stopSlice" v-if="isSlicing">停止切片</el-button>
-            <el-button type="primary" @click="slice" :disabled="!image.src" v-else>开始切片</el-button>
-            <div class="status">{{sliceStatus}}</div>
+          <el-form-item label="分辨率">
+            <el-select v-model="ratio">
+              <el-option v-for="(v,k) in ratioArr" :value="k+1" :label="v" :key="k"></el-option>
+            </el-select>
           </el-form-item>
         </el-form>
+      </div>
+      <div class="step flex-1">
+        <div class="title">3. 切片</div>
+        <div class="flex jc-fs">
+          <el-button type="danger" @click="stopSlice" v-if="isSlicing">停止切片</el-button>
+          <el-button type="primary" @click="slice" :disabled="!image.src" v-else>开始切片</el-button>
+          <div class="status">{{sliceStatus}}</div>
+        </div>
       </div>
     </div>
     <div id="container" class="map-container flex-col-1" v-loading="isSlicing"></div>
@@ -196,6 +204,9 @@ const onImageChange = (e: any) => {
 
 // 层级
 const levels = ref([14, 14]);
+// 分辨率
+const ratio = ref(1);
+const ratioArr = ['1x', '2x', '3x'];
 
 const isSlicing = ref(false);
 const sliceStatus = ref('');
@@ -212,8 +223,9 @@ const slice = async () => {
   const ctx = canvas.getContext('2d');
   const meshCanvas = document.createElement('canvas');
   const meshCtx = meshCanvas.getContext('2d');
-  meshCanvas.width = 256;
-  meshCanvas.height = 256;
+  const size = 256 * ratio.value;
+  meshCanvas.width = size;
+  meshCanvas.height = size;
   const img = await Common.loadImage(image.src);
   if (!img) {
     Common.toast('图层图片错误', 'error');
@@ -238,16 +250,16 @@ const slice = async () => {
     const level = zip.folder(zoom.toString());
 
     // 绘制图层
-    canvas.width = Math.round(tileXArr[1] - tileXArr[0] + 1) * 256;
-    canvas.height = Math.round(tileYArr[1] - tileYArr[0] + 1) * 256;
+    canvas.width = Math.round(tileXArr[1] - tileXArr[0] + 1) * size;
+    canvas.height = Math.round(tileYArr[1] - tileYArr[0] + 1) * size;
     const imageLeftTop = map.lngLatToPixel(northWest, zoom);
     const imageRightBottom = map.lngLatToPixel(southEast, zoom);
     const originPos = new AMap.LngLat(Common.tile2lon(tileXArr[0], zoom), Common.tile2lat(tileYArr[0], zoom));
     const originPixel = map.lngLatToPixel(originPos, zoom);
     const nextPos = new AMap.LngLat(Common.tile2lon(tileXArr[1] + 1, zoom), Common.tile2lat(tileYArr[1] + 1, zoom));
     const nextPixel = map.lngLatToPixel(nextPos, zoom);
-    const originOffset = [Math.round(imageLeftTop.x - originPixel.x), Math.round(imageLeftTop.y - originPixel.y)];
-    const nextOffset = [Math.round(nextPixel.x - imageRightBottom.x), Math.round(nextPixel.y - imageRightBottom.y)];
+    const originOffset = [Math.round(imageLeftTop.x - originPixel.x) * ratio.value, Math.round(imageLeftTop.y - originPixel.y) * ratio.value];
+    const nextOffset = [Math.round(nextPixel.x - imageRightBottom.x) * ratio.value, Math.round(nextPixel.y - imageRightBottom.y) * ratio.value];
     ctx?.drawImage(img, 0, 0, img.width, img.height, originOffset[0], originOffset[1], canvas.width - originOffset[0] - nextOffset[0], canvas.height - originOffset[1] - nextOffset[1]);
 
     // 分割图层
@@ -257,8 +269,8 @@ const slice = async () => {
       if (!isSlicing.value) break;
       for (let y = tileYArr[0]; y <= tileYArr[1]; y++) {
         if (!isSlicing.value) break;
-        meshCtx?.clearRect(0, 0, 256, 256);
-        meshCtx?.drawImage(canvas, (x - tileXArr[0]) * 256, (y - tileYArr[0]) * 256, 256, 256, 0, 0, 256, 256);
+        meshCtx?.clearRect(0, 0, size, size);
+        meshCtx?.drawImage(canvas, (x - tileXArr[0]) * size, (y - tileYArr[0]) * size, size, size, 0, 0, size, size);
         level?.file(`tile_${x}_${y}.png`, meshCanvas.toDataURL().split(',')[1], {base64: true});
         sliceStatus.value = `正在切片层级：${zoom}，当前：${curr++}/${total}`;
         await Common.waitFor(5);
