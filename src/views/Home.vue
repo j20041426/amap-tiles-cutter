@@ -167,6 +167,16 @@ watch(image, () => {
       position: image.bounds.southWest,
       draggable: true
     })
+    southWest.on('click', () => {
+      Common.prompt('请输入西南点坐标经纬度').then(({value}) => {
+        const [lng, lat] = value.split(',');
+        if (lng && lat) {
+          image.bounds.southWest = new AMap.LngLat(lng, lat);
+          southWest.setPosition(image.bounds.southWest);
+          southWest.setLabel({content: image.bounds.southWest});
+        }
+      })
+    })
     useMouse(southWest, (e: any) => {
       image.bounds.southWest = e.target.getPosition();
       southWest.setLabel({content: image.bounds.southWest});
@@ -180,6 +190,16 @@ watch(image, () => {
       },
       position: image.bounds.northEast,
       draggable: true
+    })
+    northEast.on('click', () => {
+      Common.prompt('请输入东北点坐标经纬度').then(({value}) => {
+        const [lng, lat] = value.split(',');
+        if (lng && lat) {
+          image.bounds.northEast = new AMap.LngLat(lng, lat);
+          northEast.setPosition(image.bounds.northEast);
+          northEast.setLabel({content: image.bounds.northEast});
+        }
+      })
     })
     useMouse(northEast, (e: any) => {
       image.bounds.northEast = e.target.getPosition();

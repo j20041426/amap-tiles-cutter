@@ -57,6 +57,15 @@ export default class Common {
       distinguishCancelAndClose: true
     })
   }
+  static prompt(msg: string, type: string = 'warning'):Promise<any> {
+    return global.vue.$prompt(msg, '温馨提示', {
+      type,
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      roundButton: true,
+      distinguishCancelAndClose: true
+    })
+  }
   static toast(msg: string, type: string = 'success'):void {
     global.vue.$message({
       message: msg,
